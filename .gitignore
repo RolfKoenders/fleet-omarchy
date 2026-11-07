@@ -1,0 +1,4 @@
+/tests/fixtures/.current
+__pycache__/
+*.pyc
+*.log

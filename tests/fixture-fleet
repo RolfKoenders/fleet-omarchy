@@ -1,0 +1,12 @@
+#!/bin/sh
+# Stands in for `fleet` to preview the plugin on made-up hosts: set the
+# plugin's "Fleet command" setting to this file's path. It answers
+# `status --all --json` with a fixture from tests/fixtures/ (the name in
+# tests/fixtures/.current, "mixed" without it) and refuses everything else.
+# Like fleet, it exits non-zero when a host is unreachable or in error.
+here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+[ "$*" = "status --all --json" ] || { echo "fixture-fleet only answers: status --all --json" >&2; exit 2; }
+name=$(cat "$here/fixtures/.current" 2>/dev/null || echo mixed)
+cat "$here/fixtures/$name.json"
+grep -q '"ok": false' "$here/fixtures/$name.json" && exit 3
+exit 0

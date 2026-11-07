@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "io.github.rolfkoenders.fleet",
+  "name": "Fleet",
+  "version": "0.1.0",
+  "author": "Rolf Koenders",
+  "license": "MIT",
+  "description": "The health of your fleet of machines in the Omarchy bar: conflicts, unreachable hosts and stopped timers at a glance.",
+  "kinds": ["service", "bar-widget"],
+  "entryPoints": {
+    "service": "Service.qml",
+    "barWidget": "Panel.qml"
+  },
+  "barWidget": {
+    "displayName": "Fleet",
+    "description": "Fleet health: one row per host, with its last apply and timer, and shortcuts into the fleet bridge",
+    "category": "Utility",
+    "aliases": ["fleet", "hosts"],
+    "allowMultiple": false,
+    "defaultSection": "right",
+    "defaults": {
+      "checkIntervalMinutes": 15,
+      "notSeenHours": 2,
+      "fleetCommand": "fleet",
+      "terminalCommand": "omarchy-launch-or-focus-tui",
+      "iconAlwaysUnlit": false
+    },
+    "schema": [
+      { "key": "checkIntervalMinutes", "type": "integer", "label": "Check interval (minutes)", "min": 1, "max": 1440, "step": 5, "defaultValue": 15, "description": "How often to run fleet status --all. Press r in the panel to check now." },
+      { "key": "notSeenHours", "type": "integer", "label": "Not seen after (hours)", "min": 1, "max": 720, "step": 1, "defaultValue": 2, "description": "A host that has not answered for this long turns the icon amber." },
+      { "key": "fleetCommand", "type": "string", "label": "Fleet command", "defaultValue": "fleet", "description": "The fleet to run. Plain words and paths only." },
+      { "key": "terminalCommand", "type": "string", "label": "Terminal command", "defaultValue": "omarchy-launch-or-focus-tui", "description": "Opens fleet bridge in a terminal window, or focuses the one that is open. Plain words and paths only." },
+      { "key": "iconAlwaysUnlit", "type": "boolean", "label": "Keep the bar icon unlit", "defaultValue": false, "description": "Keep the icon in the bar's colour whatever the state. The count and the panel still show it." }
+    ]
+  }
+}

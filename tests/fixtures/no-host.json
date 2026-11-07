@@ -1,0 +1,9 @@
+{
+  "ok": true,
+  "code": "ok",
+  "host": null,
+  "messages": [
+    "fleet: no host name set; `fleet init <host>` writes one"
+  ],
+  "hosts": []
+}
