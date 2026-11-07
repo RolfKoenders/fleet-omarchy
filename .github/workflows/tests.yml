@@ -1,0 +1,38 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Model tests
+        run: node tests/test_model.js
+
+      - name: QML house style (fonts, palette, text format)
+        run: python3 tests/test_qml_style.py
+
+      - name: Manifest is valid JSON
+        run: jq empty manifest.json
+
+      - name: QML parser when available on the runner
+        run: |
+          if command -v qmlformat >/dev/null; then
+            for file in Panel.qml Service.qml HostRow.qml; do
+              qmlformat "$file" >/dev/null
+            done
+          fi
