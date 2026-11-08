@@ -1,6 +1,6 @@
 # Fleet for Omarchy
 
-The health of your [fleet](https://github.com/RolfKoenders/fleet) in the [Omarchy](https://omarchy.dev) menu bar. One icon tells you when a host has a conflict, a stopped timer or can not be reached, so you notice without opening a terminal.
+The health of your [fleet](https://github.com/RolfKoenders/fleet) in the [Omarchy](https://omarchy.org/) menu bar. One icon tells you when a host has a conflict, a stopped timer or can not be reached, so you notice without opening a terminal.
 
 ![Fleet for Omarchy](preview.png)
 
@@ -95,7 +95,7 @@ The saved result stays in `~/.local/state/omarchy/`; delete `io.github.rolfkoend
 
 ## Requirements
 
-- [Omarchy](https://omarchy.dev) with the shell plugin system
+- [Omarchy](https://omarchy.org/) with the shell plugin system
 - [fleet](https://github.com/RolfKoenders/fleet), set up on this machine. Opening the bridge on a host or on Conflicts needs a fleet with `fleet bridge --view` and `--host`.
 
 ## Development
