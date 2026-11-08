@@ -125,15 +125,14 @@ function shortCommit(value) {
   return /^[0-9a-f]{7,64}$/.test(text) ? text.slice(0, 7) : "";
 }
 
-// Conflicts arrive as a count today. A list of {kind, path} is read too, so
-// the first one can be named once fleet reports them; only kind and path are
-// kept, never the detail text.
-function conflictFields(value) {
-  if (Array.isArray(value)) {
-    var first = value.length > 0 && isObject(value[0]) ? printable(value[0].kind, 16) + " " + printable(value[0].path, 60) : "";
-    return { conflicts: value.length, firstConflict: first.trim() };
-  }
-  return { conflicts: count(value), firstConflict: "" };
+// `conflicts` is the count. `conflictList` is the host's first few conflicts as
+// {kind, path}, sent by a newer fleet; an older one sends no list and the row
+// shows the count alone. Only kind and path of the first entry are kept, never
+// the detail text.
+function conflictFields(conflicts, list) {
+  var total = count(conflicts);
+  var first = Array.isArray(list) && total !== 0 && isObject(list[0]) ? printable(list[0].kind, 16) + " " + printable(list[0].path, 60) : "";
+  return { conflicts: total, firstConflict: first.trim() };
 }
 
 // The one place a host is shaped: used for fleet's own output and again for
@@ -170,7 +169,7 @@ function hostFromDocument(entry) {
   if (!isObject(entry)) return null;
   var status = isObject(entry.status) ? entry.status : {};
   var applied = isObject(status.applied) ? status.applied : {};
-  var fields = conflictFields(status.conflicts);
+  var fields = conflictFields(status.conflicts, status.conflictList);
   return {
     name: entry.host,
     result: entry.result,

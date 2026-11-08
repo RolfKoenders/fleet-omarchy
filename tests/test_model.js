@@ -69,6 +69,12 @@ function run_icon_states() {
   check("a conflict: amber", conflict.level === "amber");
   check("a conflict: counts that host", conflict.count === 1);
   check("a conflict: the row says how many", conflict.rows[2].label === "2 conflicts");
+  check("a conflict: the row names the first one", conflict.rows[2].firstConflict === "link ~/.claude/CLAUDE.md");
+  check("a conflict: a host without any shows no name", conflict.rows[0].firstConflict === "");
+
+  const older = summary("conflict-older-fleet");
+  check("older fleet: still amber, counting that host", older.level === "amber" && older.count === 1);
+  check("older fleet: the row shows the count alone", older.rows[2].label === "2 conflicts" && older.rows[2].firstConflict === "");
 
   const timer = summary("timer-inactive");
   check("an inactive timer: amber", timer.level === "amber");
@@ -165,6 +171,19 @@ function run_hostile_documents() {
   check("an unknown result is an error", model.hosts[2].result === "error");
   check("entries that are not hosts are dropped", model.hosts.length === 3);
 
+  const lists = JSON.parse(fixtureText("conflict"));
+  const status = (i) => lists.hosts[i].status;
+  status(0).conflictList = "link ~/.claude/CLAUDE.md";
+  status(1).conflictList = [null, { kind: "link" }];
+  status(2).conflictList = [{ kind: "li\u001bnk" + "k".repeat(100), path: "~/a\u0007b/" + "p".repeat(200) }];
+  const hostile = Model.interpretRun(0, JSON.stringify(lists)).model;
+  check("a conflict list that is not a list names nothing", hostile.hosts[0].firstConflict === "");
+  check("a first entry without a path keeps only its kind", hostile.hosts[1].firstConflict === "");
+  check("a conflict name is cleaned and cut", /^li\?nkk{11} ~\/a\?b\/p{54}$/.test(hostile.hosts[2].firstConflict));
+  status(0).conflicts = 0;
+  status(0).conflictList = [{ kind: "link", path: "~/x" }];
+  check("a list beside a count of none names nothing", Model.interpretRun(0, JSON.stringify(lists)).model.hosts[0].firstConflict === "");
+
   const many = JSON.parse(fixtureText("green"));
   for (let i = 0; i < 200; i++) many.hosts.push({ host: "h" + i, result: "ok", status: many.hosts[0].status });
   check("the number of hosts is capped", Model.interpretRun(0, JSON.stringify(many)).model.hosts.length === 64);
@@ -176,7 +195,8 @@ function run_secrets_never_reach_the_model() {
   doc.token = SECRET;
   doc.hosts[2].status.env = { API_KEY: SECRET };
   doc.hosts[2].status.tools.sops = SECRET;
-  doc.hosts[2].status.conflicts = [{ kind: "key", path: "mcp.search", detail: "value was " + SECRET, fix: SECRET }];
+  doc.hosts[2].status.conflicts = 1;
+  doc.hosts[2].status.conflictList = [{ kind: "key", path: "mcp.search", detail: "value was " + SECRET, fix: SECRET }];
   const run = Model.interpretRun(0, JSON.stringify(doc));
   const state = Model.nextState(null, run, NOW);
   const everything = JSON.stringify(Model.summarize(state, NOW, NOT_SEEN)) + Model.serializeState(state) + JSON.stringify(run);
