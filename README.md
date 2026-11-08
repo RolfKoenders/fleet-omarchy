@@ -69,16 +69,6 @@ The two command settings take plain words and paths only (letters, digits and `.
 omarchy plugin add https://github.com/RolfKoenders/fleet-omarchy.git --enable
 ```
 
-Or for local development:
-
-```bash
-git clone https://github.com/RolfKoenders/fleet-omarchy.git
-cd fleet-omarchy
-ln -sfn "$PWD" ~/.config/omarchy/plugins/io.github.rolfkoenders.fleet
-omarchy restart shell
-omarchy plugin enable io.github.rolfkoenders.fleet
-```
-
 The icon defaults to the right side of the bar. To move it:
 
 ```bash
@@ -99,6 +89,8 @@ The saved result stays in `~/.local/state/omarchy/`; delete `io.github.rolfkoend
 - [fleet](https://github.com/RolfKoenders/fleet), set up on this machine. Opening the bridge on a host or on Conflicts needs a fleet with `fleet bridge --view` and `--host`.
 
 ## Development
+
+To work on the plugin, link your checkout into place instead of installing it: `ln -sfn "$PWD" ~/.config/omarchy/plugins/io.github.rolfkoenders.fleet`, then `omarchy restart shell` and `omarchy plugin enable io.github.rolfkoenders.fleet`.
 
 ```bash
 node tests/test_model.js        # states, parsing, settings, commands, from fixtures
