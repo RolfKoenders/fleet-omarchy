@@ -39,6 +39,8 @@ A host is:
 | amber | it has conflicts, its timer is not active, or it has not answered for longer than the not-seen threshold (2 hours) |
 | green | none of the above |
 
+A host's row says how many conflicts it has and, from fleet 2.2.0 on, names the first one as its kind and path, such as `link ~/.claude/CLAUDE.md`. A host on an older fleet does not send the list, so its row shows the count alone. The detail and the fix stay with `fleet status --conflicts` and the bridge's Conflicts screen.
+
 A host with no `ssh` destination, which fleet can not ask and which applies on its own schedule, is shown as "not queried" and counts for nothing. The icon takes the worst host.
 
 The plugin keeps only the fields it shows. Tool versions and clone details are dropped as the JSON is read, and text is cut and stripped of control characters, because a host can be wrong. It never reads secrets, and nothing it keeps or shows can hold one.

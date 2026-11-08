@@ -107,8 +107,19 @@
           "sops": "3.13.3",
           "node": "22.18.0",
           "t3": null
-        }
+        },
+        "conflictList": [
+          {
+            "kind": "link",
+            "path": "~/.claude/CLAUDE.md"
+          },
+          {
+            "kind": "key",
+            "path": "mcp.search"
+          }
+        ]
       }
     }
-  ]
+  ],
+  "conflictList": []
 }
