@@ -279,6 +279,10 @@ function run_settings() {
     check("an unsafe terminal command falls back: " + cmd, same(Model.resolveSettings({ terminalCommand: cmd }).terminal, ["omarchy-launch-or-focus-tui"]));
   });
   check("a blank command falls back", same(Model.resolveSettings({ fleetCommand: "   " }).fleet, ["fleet"]));
+  ["fleet push", "fleet apply", "fleet secrets", "fleet update", "fleet doctor", "fleet status", "fleet bridge", "mise exec -- fleet push"].forEach(function (cmd) {
+    check("a fleet command that names a fleet subcommand falls back: " + cmd, same(Model.resolveSettings({ fleetCommand: cmd }).fleet, ["fleet"]));
+  });
+  check("a wrapper around fleet is kept", same(Model.resolveSettings({ fleetCommand: "mise exec -- fleet" }).fleet, ["mise", "exec", "--", "fleet"]));
   check("a command with arguments is kept as words", same(Model.resolveSettings({ terminalCommand: "my-launcher --tui" }).terminal, ["my-launcher", "--tui"]));
 }
 
@@ -312,6 +316,46 @@ function run_bridge_commands() {
   check("every action is a bridge, nothing that pushes or runs doctor", all.every((c) => c.indexOf("bridge") === 2 && verbs.every((v) => c.indexOf(v) === -1)));
 }
 
+// Whatever the settings and the target, fleet runs only `status --all --json` or `bridge`, which read until a
+// person confirms in the bridge. Nothing the plugin starts can apply, push or touch a secret.
+function run_only_reading_commands() {
+  const settings = ["", "fleet", "/x/bin/fleet", "mise exec -- fleet", "fleet push", "fleet apply", "fleet; rm -rf ~"]
+    .map((fleet) => Model.resolveSettings({ fleetCommand: fleet, terminalCommand: "push apply" }));
+  const targets = [undefined, {}, { host: "server" }, { view: "conflicts" }, { view: "push" }, { host: "apply" }];
+  const built = [];
+  settings.forEach(function (s) {
+    built.push({ fleet: s.fleet, rest: Model.statusCommand(s.fleet).slice(4 + s.fleet.length) });
+    targets.forEach(function (t) {
+      const cmd = Model.bridgeCommand(s, t);
+      if (cmd !== null) built.push({ fleet: s.fleet, rest: cmd.slice(s.terminal.length + s.fleet.length) });
+    });
+  });
+  const allowed = (rest) => same(rest, ["status", "--all", "--json"]) || (rest[0] === "bridge" && (rest.length === 1
+    || (rest.length === 3 && ((rest[1] === "--view" && rest[2] === "conflicts") || (rest[1] === "--host" && Model.isHostName(rest[2]))))));
+  check("every command the plugin builds is fleet status --all --json or fleet bridge", built.length > 0 && built.every((b) => allowed(b.rest)));
+  check("the fleet program never names a fleet subcommand", built.every((b) => b.fleet.every((t) => ["status", "bridge", "apply", "push", "secrets"].indexOf(t) === -1)));
+}
+
+// The QML starts processes only through Model.js, so the tests above see every command it can run.
+function run_qml_starts_only_model_commands() {
+  const root = path.join(__dirname, "..");
+  const starts = [];
+  fs.readdirSync(root).filter((f) => f.endsWith(".qml")).forEach(function (file) {
+    fs.readFileSync(path.join(root, file), "utf8").split("\n").forEach(function (line) {
+      if (/\bcommand\s*[:=]|exec(Detached)?\s*\(|startDetached|Process\s*\{/.test(line)) starts.push(file + ": " + line.trim());
+    });
+  });
+  const known = [
+    "Service.qml: statusProc.command = Model.statusCommand(root.config.fleet);",
+    "Service.qml: var command = Model.bridgeCommand(root.config, target);",
+    "Service.qml: if (command !== null) Quickshell.execDetached(command);",
+    "Service.qml: Process {",
+    "Service.qml: Process {",
+    "Service.qml: command: [\"mkdir\", \"-p\", root.stateDir]",
+  ];
+  check("the QML starts processes only through Model.js (and mkdir for its state): " + JSON.stringify(starts), same(starts.slice().sort(), known.slice().sort()));
+}
+
 function run_headline() {
   check("all ok", Model.headline(summary("green"), "") === "All 3 hosts ok");
   check("some need attention", Model.headline(summary("mixed", 3), "") === "2 of 3 hosts need attention");
@@ -320,6 +364,8 @@ function run_headline() {
   check("a failed first check", Model.headline(Model.summarize(Model.emptyState(), NOW, NOT_SEEN), "x") === "Fleet check failed");
 }
 
+run_only_reading_commands();
+run_qml_starts_only_model_commands();
 run_icon_states();
 run_not_seen_threshold();
 run_row_detail();
