@@ -58,12 +58,26 @@ function splitCommand(text, fallback) {
   return tokens;
 }
 
+// fleet's subcommands. The fleet command setting names the program, never one of these, so it can not turn
+// the status check into a command that changes something (`fleet push status --all --json`).
+var FLEET_VERBS = ["status", "doctor", "context", "diff", "bridge", "apply", "push", "adopt", "secrets",
+  "skills", "update", "new", "init", "demo", "agent", "help"];
+
+function fleetCommand(text) {
+  var fallback = [DEFAULTS.fleetCommand];
+  var tokens = splitCommand(text, fallback);
+  for (var i = 0; i < tokens.length; i++) {
+    if (FLEET_VERBS.indexOf(tokens[i]) !== -1) return fallback;
+  }
+  return tokens;
+}
+
 function resolveSettings(raw) {
   var s = raw || {};
   return {
     checkIntervalMs: clampInt(s.checkIntervalMinutes, DEFAULTS.checkIntervalMinutes, 1, 1440) * 60 * 1000,
     notSeenMs: clampInt(s.notSeenHours, DEFAULTS.notSeenHours, 1, 720) * 3600 * 1000,
-    fleet: splitCommand(s.fleetCommand, [DEFAULTS.fleetCommand]),
+    fleet: fleetCommand(s.fleetCommand),
     terminal: splitCommand(s.terminalCommand, [DEFAULTS.terminalCommand]),
     unlit: asBool(s.iconAlwaysUnlit, DEFAULTS.iconAlwaysUnlit)
   };

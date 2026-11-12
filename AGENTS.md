@@ -21,6 +21,7 @@ fleet-omarchy/
 ## Rules
 
 - The plugin runs one fleet command: `fleet status --all --json`, through `statusCommand()` in `Model.js`. Everything else it starts is `fleet bridge`, through the terminal launcher and `bridgeCommand()`. Nothing may push, apply, run doctor or write anything of fleet's.
+- QML starts processes only through `Model.statusCommand` and `Model.bridgeCommand` (plus `mkdir` for its state); `tests/test_model.js` lists every process start in the QML and fails on a new one. The fleet command setting may not name a fleet subcommand.
 - Put decisions in `Model.js`, not in QML, and test them. It must stay free of QML types and Node-only APIs, so the same file runs in both.
 - `omarchy-launch-or-focus` runs its command through `eval`. Host names and the two command settings are checked in `Model.js` (`isHostName`, `splitCommand`) before they reach it. Keep it so.
 - The document fleet prints is untrusted: read only the fields the panel shows, cut and clean their text, never keep the rest.
